@@ -5,16 +5,29 @@ const FormBuilder = () => {
   const [formSchema, setFormSchema] = useState([]);
 
   const addField = (type) => {
-    const newField = {
-      id: `field-${Date.now()}`,
-      type,
-      label: `${type.charAt(0).toUpperCase() + type.slice(1)} Field`,
-      required: true,
-      options: type === " " || type === "radio" ? ["Option 1", "Option 2"] : [],
+    const timestamp = Date.now();
+    const uniqueId = `field-${type}-${timestamp}`;
+
+    const defaultLabels = {
+      text: "Text Input",
+      number: "Number Input",
+      checkbox: "Checkbox",
+      select: "Select Dropdown",
+      radio: "Radio Group",
     };
 
-    setFormSchema([...formSchema, newField]);
+    const newField = {
+      id: uniqueId,
+      type,
+      label: defaultLabels[type] || "New Field",
+      required: true,
+      options:
+        type === "select" || type === "radio" ? ["Option 1", "Option 2"] : [],
+    };
+
+    setFormSchema((prev) => [...prev, newField]);
   };
+
   const updateField = (id, key, value) => {
     setFormSchema((prev) =>
       prev.map((field) =>
@@ -29,12 +42,12 @@ const FormBuilder = () => {
 
   return (
     <>
-      <div className="flex [&>button]:border [&>button]:rounded [&>button]:mr-2 [&>button]:px-2 m-5">
-        <button onClick={() => addField("text")}>Add Text</button>
-        <button onClick={() => addField("number")}>Add Number</button>
+      <div className="flex md:flex-nowrap flex-wrap [&>button]:border [&>button]:rounded gap-2 [&>button]:px-2 m-5">
+        <button onClick={() => addField("text")}>Add Text Input</button>
+        <button onClick={() => addField("number")}>Add Number Input</button>
         <button onClick={() => addField("checkbox")}>Add Checkbox</button>
         <button onClick={() => addField("select")}>Add Select</button>
-        <button onClick={() => addField("radio")}>Add Radio</button>
+        <button onClick={() => addField("radio")}>Add Radio Group</button>
       </div>
 
       {/* <input
@@ -43,7 +56,11 @@ const FormBuilder = () => {
       /> */}
 
       <div className="m-5">
-        <FormPreview schema={formSchema} />
+        <FormPreview
+          schema={formSchema}
+          deleteField={deleteField}
+          updateField={updateField}
+        />
       </div>
 
       {/* <pre>{JSON.stringify(formSchema, null, 2)}</pre> */}
