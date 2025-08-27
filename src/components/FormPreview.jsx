@@ -1,11 +1,32 @@
-import { useState } from "react";
-
-const FormPreview = ({ schema, deleteField, updateField }) => {
-  const [formData, setFormData] = useState({});
-  const [errors, setErrors] = useState({});
-
+const FormPreview = ({
+  schema,
+  deleteField,
+  updateField,
+  deleteAllFields,
+  formData,
+  setFormData,
+  errors,
+  setErrors,
+}) => {
   const handleChange = (id, value) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
+
+    // Clear error if value is no longer empty
+    setErrors((prev) => {
+      const updated = { ...prev };
+      const field = schema.find((f) => f.id === id);
+
+      const isEmpty =
+        value === undefined ||
+        value === "" ||
+        (field?.type === "checkbox" && value === false);
+
+      if (!isEmpty) {
+        delete updated[id];
+      }
+
+      return updated;
+    });
   };
 
   const handleSubmit = (e) => {
@@ -27,7 +48,13 @@ const FormPreview = ({ schema, deleteField, updateField }) => {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    console.log("Form submitted:", formData);
+    const labeledData = {};
+    schema.forEach((field) => {
+      labeledData[field.label] = formData[field.id];
+    });
+
+    console.log("Form submitted:", labeledData);
+
     alert("Form submitted successfully!");
     setFormData({});
     setErrors({});
@@ -93,6 +120,9 @@ const FormPreview = ({ schema, deleteField, updateField }) => {
                   value={formData[field.id] || ""}
                   onChange={(e) => handleChange(field.id, e.target.value)}
                 >
+                  <option value="" disabled>
+                    -- Select an option --
+                  </option>
                   {field.options.map((opt, i) => (
                     <option key={i} value={opt}>
                       {opt}
@@ -211,9 +241,28 @@ const FormPreview = ({ schema, deleteField, updateField }) => {
         </div>
       ))}
 
-      <button type="submit" className="border px-4 py-2 rounded mt-4">
-        Submit
-      </button>
+      <div className="flex">
+        <div className="flex-1">
+          {schema.length === 0 ? (
+            <p className="text-gray-500">No fields added yet.</p>
+          ) : (
+            <button type="submit" className="border px-4 py-2 rounded mt-4">
+              Submit
+            </button>
+          )}
+        </div>
+        <div className="flex-1">
+          {schema.length > 1 && (
+            <button
+              type="button"
+              onClick={deleteAllFields}
+              className="border px-4 py-2 rounded mt-4 ml-4 text-red-500 border-red-500"
+            >
+              Delete All Fields
+            </button>
+          )}
+        </div>
+      </div>
     </form>
   );
 };

@@ -3,6 +3,8 @@ import FormPreview from "./FormPreview";
 
 const FormBuilder = () => {
   const [formSchema, setFormSchema] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState({});
 
   const addField = (type) => {
     const timestamp = Date.now();
@@ -34,10 +36,25 @@ const FormBuilder = () => {
         field.id === id ? { ...field, [key]: value } : field
       )
     );
+
+    // Clear error if required is being turned off
+    if (key === "required" && value === false) {
+      setErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[id];
+        return updated;
+      });
+    }
   };
 
   const deleteField = (id) => {
     setFormSchema((prev) => prev.filter((field) => field.id !== id));
+  };
+
+  const deleteAllFields = () => {
+    setFormSchema([]);
+    setFormData({});
+    setErrors({});
   };
 
   return (
@@ -60,6 +77,11 @@ const FormBuilder = () => {
           schema={formSchema}
           deleteField={deleteField}
           updateField={updateField}
+          deleteAllFields={deleteAllFields}
+          errors={errors}
+          setErrors={setErrors}
+          formData={formData}
+          setFormData={setFormData}
         />
       </div>
 
