@@ -78,7 +78,7 @@ const FormPreview = ({
                   id={field.id}
                   name={field.id}
                   type={field.type}
-                  className="border border-gray-300 rounded-md p-2 min-w-[200px] w-1/2 mt-1"
+                  className="border border-gray-300 rounded-md p-2 min-w-[220px] w-1/2 mt-1"
                   placeholder={`Enter ${field.label}`}
                   value={formData[field.id] || ""}
                   onChange={(e) => handleChange(field.id, e.target.value)}
@@ -92,7 +92,7 @@ const FormPreview = ({
             ) : null}
 
             {field.type === "checkbox" ? (
-              <div className="min-w-[200px]">
+              <div className="min-w-[220px]">
                 <label>
                   <input
                     type="checkbox"
@@ -116,7 +116,7 @@ const FormPreview = ({
                 <select
                   id={field.id}
                   name={field.id}
-                  className="border border-gray-300 rounded-md p-2 min-w-[200px] w-1/2 mt-1"
+                  className="border border-gray-300 rounded-md p-2 min-w-[220px] w-1/2 mt-1"
                   value={formData[field.id] || ""}
                   onChange={(e) => handleChange(field.id, e.target.value)}
                 >
@@ -138,7 +138,7 @@ const FormPreview = ({
             ) : null}
 
             {field.type === "radio" ? (
-              <fieldset className="border border-gray-300 rounded-md p-2 min-w-[200px] w-1/2">
+              <fieldset className="border border-gray-300 rounded-md p-2 min-w-[220px] w-1/2">
                 <legend className="font-medium mb-2">{field.label}</legend>
                 {field.options.map((opt, i) => (
                   <label key={i} className="block">
@@ -256,7 +256,7 @@ const FormPreview = ({
             <button
               type="button"
               onClick={deleteAllFields}
-              className="border px-4 py-2 rounded mt-4 ml-4 text-red-500 border-red-500"
+              className="border px-4 py-2 rounded mt-4 ml-2.5 text-red-500 border-red-500"
             >
               Delete All Fields
             </button>

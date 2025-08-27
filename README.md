@@ -52,3 +52,27 @@ npm install
 # Run the development server
 npm run dev
 ```
+
+---
+
+## 🎯 Design Philosophy
+
+This project was built with a focus on:
+
+- `Simplicity`: Minimal dependencies and clean logic
+- `Usability`: Clear layout and responsive error handling
+- `Extensibility`: Easy to add new field types or features
+
+---
+
+## 📌 Notes
+
+- No field is selected by default in dropdowns
+- Radio groups are properly labeled and grouped
+- Error messages disappear when fields are corrected or marked non-required
+
+---
+
+## 📄 License
+
+- This project is for evaluation purposes only. No license applied.
