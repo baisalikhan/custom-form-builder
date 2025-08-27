@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 const FormPreview = ({
   schema,
   deleteField,
@@ -8,6 +10,9 @@ const FormPreview = ({
   errors,
   setErrors,
 }) => {
+  const inputRefs = useRef({});
+  const formRef = useRef(null);
+
   const handleChange = (id, value) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
 
@@ -31,6 +36,11 @@ const FormPreview = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Trigger native validation UI even with noValidate present
+    const nativeOk =
+      formRef.current && typeof formRef.current.reportValidity === "function"
+        ? formRef.current.reportValidity()
+        : true;
     const newErrors = {};
 
     schema.forEach((field) => {
@@ -46,14 +56,20 @@ const FormPreview = ({
     });
 
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+    if (!nativeOk || Object.keys(newErrors).length > 0) {
+      const firstInvalidId = Object.keys(newErrors)[0];
+      const el = inputRefs.current[firstInvalidId];
+      if (el && typeof el.focus === "function") {
+        el.focus();
+      }
+      return;
+    }
 
-    const labeledData = {};
-    schema.forEach((field) => {
-      labeledData[field.label] = formData[field.id];
-    });
-
-    console.log("Form submitted:", labeledData);
+    const payload = {
+      byId: { ...formData },
+      fields: schema.map(({ id, label, type }) => ({ id, label, type })),
+    };
+    console.log("Form submitted:", payload);
 
     alert("Form submitted successfully!");
     setFormData({});
@@ -61,7 +77,7 @@ const FormPreview = ({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate ref={formRef}>
       <div className="md:w-1/2 border-b text-center text-2xl">Form Preview</div>
       {schema.map((field) => (
         <div
@@ -72,19 +88,39 @@ const FormPreview = ({
           <div className="lg:flex-2">
             {field.type === "text" || field.type === "number" ? (
               <>
-                <label htmlFor={field.Id}>{field.label}: </label>
+                <label htmlFor={field.id}>{field.label}: </label>
                 <br />
                 <input
                   id={field.id}
                   name={field.id}
                   type={field.type}
-                  className="border border-gray-300 rounded-md p-2 min-w-[220px] w-1/2 mt-1"
+                  className={`border rounded-md p-2 min-w-[220px] w-1/2 mt-1 ${
+                    errors[field.id] ? "border-red-500" : "border-gray-300"
+                  }`}
                   placeholder={`Enter ${field.label}`}
-                  value={formData[field.id] || ""}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
+                  value={formData[field.id] ?? ""}
+                  onChange={(e) =>
+                    handleChange(
+                      field.id,
+                      field.type === "number"
+                        ? e.target.value === ""
+                          ? ""
+                          : Number(e.target.value)
+                        : e.target.value
+                    )
+                  }
+                  aria-invalid={Boolean(errors[field.id])}
+                  aria-describedby={
+                    errors[field.id] ? `${field.id}-error` : undefined
+                  }
+                  required={field.required}
+                  ref={(el) => (inputRefs.current[field.id] = el)}
                 />
                 {errors[field.id] && (
-                  <div className="text-sm text-red-500 mt-1">
+                  <div
+                    id={`${field.id}-error`}
+                    className="text-sm text-red-500 mt-1"
+                  >
                     {errors[field.id]}
                   </div>
                 )}
@@ -98,11 +134,25 @@ const FormPreview = ({
                     type="checkbox"
                     checked={formData[field.id] || false}
                     onChange={(e) => handleChange(field.id, e.target.checked)}
+                    className={
+                      errors[field.id]
+                        ? "ring-2 ring-red-500 rounded"
+                        : undefined
+                    }
+                    aria-invalid={Boolean(errors[field.id])}
+                    aria-describedby={
+                      errors[field.id] ? `${field.id}-error` : undefined
+                    }
+                    required={field.required}
+                    ref={(el) => (inputRefs.current[field.id] = el)}
                   />
                   <span className="ml-2">{field.label}</span>
                 </label>
                 {errors[field.id] && (
-                  <div className="text-sm text-red-500 mt-1">
+                  <div
+                    id={`${field.id}-error`}
+                    className="text-sm text-red-500 mt-1"
+                  >
                     {errors[field.id]}
                   </div>
                 )}
@@ -116,21 +166,32 @@ const FormPreview = ({
                 <select
                   id={field.id}
                   name={field.id}
-                  className="border border-gray-300 rounded-md p-2 min-w-[220px] w-1/2 mt-1"
-                  value={formData[field.id] || ""}
+                  className={`border rounded-md p-2 min-w-[220px] w-1/2 mt-1 ${
+                    errors[field.id] ? "border-red-500" : "border-gray-300"
+                  }`}
+                  value={formData[field.id] ?? ""}
                   onChange={(e) => handleChange(field.id, e.target.value)}
+                  aria-invalid={Boolean(errors[field.id])}
+                  aria-describedby={
+                    errors[field.id] ? `${field.id}-error` : undefined
+                  }
+                  required={field.required}
+                  ref={(el) => (inputRefs.current[field.id] = el)}
                 >
                   <option value="" disabled>
                     -- Select an option --
                   </option>
-                  {field.options.map((opt, i) => (
-                    <option key={i} value={opt}>
+                  {(field.options ?? []).map((opt) => (
+                    <option key={opt} value={opt}>
                       {opt}
                     </option>
                   ))}
                 </select>
                 {errors[field.id] && (
-                  <div className="text-sm text-red-500 mt-1">
+                  <div
+                    id={`${field.id}-error`}
+                    className="text-sm text-red-500 mt-1"
+                  >
                     {errors[field.id]}
                   </div>
                 )}
@@ -138,22 +199,37 @@ const FormPreview = ({
             ) : null}
 
             {field.type === "radio" ? (
-              <fieldset className="border border-gray-300 rounded-md p-2 min-w-[220px] w-1/2">
+              <fieldset
+                className={`border rounded-md p-2 min-w-[220px] w-1/2 ${
+                  errors[field.id] ? "border-red-500" : "border-gray-300"
+                }`}
+              >
                 <legend className="font-medium mb-2">{field.label}</legend>
-                {field.options.map((opt, i) => (
-                  <label key={i} className="block">
+                {(field.options ?? []).map((opt, i) => (
+                  <label key={`${opt}-${i}`} className="block">
                     <input
                       type="radio"
                       name={field.id}
                       value={opt}
                       checked={formData[field.id] === opt}
                       onChange={(e) => handleChange(field.id, e.target.value)}
+                      aria-invalid={Boolean(errors[field.id])}
+                      aria-describedby={
+                        errors[field.id] ? `${field.id}-error` : undefined
+                      }
+                      required={field.required}
+                      ref={(el) => {
+                        if (i === 0) inputRefs.current[field.id] = el;
+                      }}
                     />
                     <span className="ml-2">{opt}</span>
                   </label>
                 ))}
                 {errors[field.id] && (
-                  <div className="text-sm text-red-500 mt-1">
+                  <div
+                    id={`${field.id}-error`}
+                    className="text-sm text-red-500 mt-1"
+                  >
                     {errors[field.id]}
                   </div>
                 )}
@@ -197,13 +273,15 @@ const FormPreview = ({
 
             {(field.type === "select" || field.type === "radio") && (
               <div className="space-y-1">
-                {field.options.map((opt, i) => (
-                  <div key={i} className="flex gap-2 items-center">
+                {(field.options ?? []).map((opt, i) => (
+                  <div key={`${opt}-${i}`} className="flex gap-2 items-center">
                     <input
                       type="text"
                       value={opt}
                       onChange={(e) => {
-                        const updated = [...field.options];
+                        const updated = Array.isArray(field.options)
+                          ? [...field.options]
+                          : [];
                         updated[i] = e.target.value;
                         updateField(field.id, "options", updated);
                       }}
@@ -212,9 +290,10 @@ const FormPreview = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const updated = field.options.filter(
-                          (_, idx) => idx !== i
-                        );
+                        const base = Array.isArray(field.options)
+                          ? field.options
+                          : [];
+                        const updated = base.filter((_, idx) => idx !== i);
                         updateField(field.id, "options", updated);
                       }}
                       className="text-red-500"

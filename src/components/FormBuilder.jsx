@@ -22,33 +22,51 @@ const FormBuilder = () => {
       id: uniqueId,
       type,
       label: defaultLabels[type] || "New Field",
-      required: true,
+      required: type === "checkbox" ? false : true,
       options:
         type === "select" || type === "radio" ? ["Option 1", "Option 2"] : [],
     };
 
     setFormSchema((prev) => [...prev, newField]);
+    if (type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [uniqueId]: false }));
+    }
   };
 
   const updateField = (id, key, value) => {
     setFormSchema((prev) =>
-      prev.map((field) =>
-        field.id === id ? { ...field, [key]: value } : field
-      )
+      prev.map((f) => {
+        if (f.id !== id) return f;
+        if (key === "options") {
+          const arr = Array.isArray(value)
+            ? value.map((v) => String(v).trim()).filter(Boolean)
+            : [];
+          return { ...f, options: arr };
+        }
+        if (key === "required") return { ...f, required: Boolean(value) };
+        if (key === "label") return { ...f, label: String(value) };
+        return f;
+      })
     );
-
-    // Clear error if required is being turned off
     if (key === "required" && value === false) {
       setErrors((prev) => {
-        const updated = { ...prev };
-        delete updated[id];
-        return updated;
+        const { [id]: _omit, ...rest } = prev;
+        return rest;
       });
     }
   };
 
   const deleteField = (id) => {
-    setFormSchema((prev) => prev.filter((field) => field.id !== id));
+    setFormSchema((prev) => prev.filter((f) => f.id !== id));
+
+    setFormData((prev) => {
+      const { [id]: _omit, ...rest } = prev;
+      return rest;
+    });
+    setErrors((prev) => {
+      const { [id]: _omit, ...rest } = prev;
+      return rest;
+    });
   };
 
   const deleteAllFields = () => {
@@ -59,18 +77,28 @@ const FormBuilder = () => {
 
   return (
     <>
-      <div className="flex md:flex-nowrap flex-wrap [&>button]:border [&>button]:rounded gap-2 [&>button]:px-2 m-5">
-        <button onClick={() => addField("text")}>Add Text Input</button>
-        <button onClick={() => addField("number")}>Add Number Input</button>
-        <button onClick={() => addField("checkbox")}>Add Checkbox</button>
-        <button onClick={() => addField("select")}>Add Select</button>
-        <button onClick={() => addField("radio")}>Add Radio Group</button>
+      <div className="border-2 border-gray-300 rounded-md p-3 mx-5 my-2 w-fit">
+        <h6 className="mb-2 text-gray-600 font-bold text-xl whitespace-nowrap">
+          Add Field:
+        </h6>
+        <div className="flex md:flex-nowrap flex-wrap [&>button]:border-2 [&>button]:border-gray-300 [&>button]:rounded-md gap-2 [&>button]:p-2 [&>button]:whitespace-nowrap">
+          <button type="button" onClick={() => addField("text")}>
+            Text Input
+          </button>
+          <button type="button" onClick={() => addField("number")}>
+            Number Input
+          </button>
+          <button type="button" onClick={() => addField("checkbox")}>
+            Checkbox
+          </button>
+          <button type="button" onClick={() => addField("select")}>
+            Select
+          </button>
+          <button type="button" onClick={() => addField("radio")}>
+            Radio Group
+          </button>
+        </div>
       </div>
-
-      {/* <input
-        value={field.label}
-        onChange={(e) => updateField(field.id, "label", e.target.value)}
-      /> */}
 
       <div className="m-5">
         <FormPreview
