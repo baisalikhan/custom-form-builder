@@ -274,14 +274,15 @@ const FormPreview = ({
             {(field.type === "select" || field.type === "radio") && (
               <div className="space-y-1">
                 {(field.options ?? []).map((opt, i) => (
-                  <div key={`${opt}-${i}`} className="flex gap-2 items-center">
+                  <div
+                    key={`${field.id}-option-${i}`}
+                    className="flex gap-2 items-center"
+                  >
                     <input
                       type="text"
                       value={opt}
                       onChange={(e) => {
-                        const updated = Array.isArray(field.options)
-                          ? [...field.options]
-                          : [];
+                        const updated = [...(field.options || [])];
                         updated[i] = e.target.value;
                         updateField(field.id, "options", updated);
                       }}
@@ -290,10 +291,9 @@ const FormPreview = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const base = Array.isArray(field.options)
-                          ? field.options
-                          : [];
-                        const updated = base.filter((_, idx) => idx !== i);
+                        const updated = (field.options || []).filter(
+                          (_, idx) => idx !== i
+                        );
                         updateField(field.id, "options", updated);
                       }}
                       className="text-red-500"
@@ -306,7 +306,7 @@ const FormPreview = ({
                   type="button"
                   onClick={() =>
                     updateField(field.id, "options", [
-                      ...field.options,
+                      ...(field.options || []),
                       "New Option",
                     ])
                   }

@@ -38,9 +38,7 @@ const FormBuilder = () => {
       prev.map((f) => {
         if (f.id !== id) return f;
         if (key === "options") {
-          const arr = Array.isArray(value)
-            ? value.map((v) => String(v).trim()).filter(Boolean)
-            : [];
+          const arr = Array.isArray(value) ? value : [];
           return { ...f, options: arr };
         }
         if (key === "required") return { ...f, required: Boolean(value) };
